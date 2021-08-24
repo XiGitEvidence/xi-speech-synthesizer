@@ -1,3 +1,8 @@
+# Add task_ogg
+Return voice recording in an .OGG container encoded with OPUS.
+
+---
+
 # 习近平讲话模拟器 Xi Jinping Speech Synthesizer
 
 **深受 [韓國瑜發大財產生器](https://rogeraabbccdd.github.io/Fadacai-Generator/#/) 和 [Trumped](https://trumped.com/) 启发，特此创作。**

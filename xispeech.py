@@ -157,7 +157,7 @@ class XiSpeechSynthesizer:
     def create_and_store_opus_ogg(self, x):
         try:
             audio, error = self._get_raw_audio(x)
-            self.result = b64encode(audio.export(format="ogg", codec="opus").read()).decode('ascii')
+            self.result = b64encode(audio.export(format="ogg", codec="libopus").read()).decode('ascii')
             self.error = XiSpeechSynthesizer.list_to_string(error)
         except ProcessAbortedException as e:
             self.result = ""
