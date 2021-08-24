@@ -18,17 +18,21 @@ class TaskManipulator:
     threads = {}
 
     class MyThread(Thread):
-        def __init__(self, text, request_id):
+        def __init__(self, text, request_id, ogg_mode):
             super().__init__()
             self.text = text
             self.request_id = request_id
             self.synthesizer = XiSpeechSynthesizer()
+            self.ogg_mode = ogg_mode
 
         def run(self):
             create_item(self.request_id)
             self.synthesizer = XiSpeechSynthesizer()
             self.update_progress()
-            self.synthesizer.create_and_store_encoded_audio(self.text)
+            if self.ogg_mode:
+                self.synthesizer.create_and_store_opus_ogg(self.text)
+            else:
+                self.synthesizer.create_and_store_encoded_audio(self.text)
             TaskManipulator.delete(self.request_id)
 
         def update_progress(self):
@@ -38,7 +42,7 @@ class TaskManipulator:
                     if self.synthesizer.progress < 1:
                         self.update_progress()
                     else:
-                        set_result(self.request_id, self.synthesizer.result, True, self.synthesizer.error)
+                        set_result(self.request_id, self.synthesizer.result, True, self.synthesizer.error, ogg_flag=self.ogg_mode)
 
             t = Timer(0.25, func_wrapper)
             t.start()
@@ -55,8 +59,8 @@ class TaskManipulator:
             del TaskManipulator.threads[request_id]
 
     @staticmethod
-    def start(text, request_id):
-        TaskManipulator.threads[request_id] = TaskManipulator.MyThread(text, request_id)
+    def start(text, request_id, ogg_mode=False):
+        TaskManipulator.threads[request_id] = TaskManipulator.MyThread(text, request_id, ogg_mode)
         TaskManipulator.threads[request_id].start()
 
 
@@ -74,6 +78,37 @@ def create():
             return result
         try:
             TaskManipulator.start(text, request_id)
+            result = {
+                "request_successful": True,
+                "id": request_id
+            }
+        except Exception as e:
+            result = {
+                "request_successful": False,
+                "message": str(e)
+            }
+    else:
+        result = {
+            "request_successful": False,
+            "message": "文本缺失"
+        }
+    return result
+
+
+@app.route("/task_ogg", methods=['POST'])
+def create_ogg():
+    json = request.get_json()
+    if json is not None and "text" in json:
+        request_id = str(uuid1())
+        text = json["text"]
+        if len(text) > 1000:
+            result = {
+                "request_successful": False,
+                "message": "文本不得超过1000字"
+            }
+            return result
+        try:
+            TaskManipulator.start(text, request_id, ogg_mode=True)
             result = {
                 "request_successful": True,
                 "id": request_id

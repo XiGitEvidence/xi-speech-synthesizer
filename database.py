@@ -14,7 +14,7 @@ class Result(db.Model):
     error_message = db.Column(db.String, default="")
     audio = db.Column(db.String, default="")
     date = db.Column(db.DateTime, default=datetime.utcnow)
-
+    ogg_flag = db.Column(db.Boolean, default=False)  # OGG格式标签
 
 db.create_all()
 
@@ -58,7 +58,7 @@ def get_progress(id):
     return result
 
 
-def set_result(id, audio, success, error_message):
+def set_result(id, audio, success, error_message, ogg_flag=False):
     item = _get_item(id)
     if item is None:
         raise NoSuchItemException("找不到此项目")
@@ -68,6 +68,7 @@ def set_result(id, audio, success, error_message):
         item.success = success
         item.error_message = error_message
         item.finished = True
+        item.ogg_flag = ogg_flag  # OGG格式标签
         db.session.commit()
 
 
